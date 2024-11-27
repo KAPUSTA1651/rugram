@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rugram</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="app.py">
+
+</head>
+<body>
+    <div class="container">
+        <div class="upload-form">
+            <h2>Загрузить фото</h2>
+            <input type="file" accept="image/*">
+            <button>Загрузить</button>
+        </div>
+
+        <div class="header">
+            <h1>Rugram</h1>
+            <button class="upload-button">Загрузить фото</button>
+        </div>
+
+        <div class="feed">
+            <div class="post">
+                <img src="/orig.jpg" alt="Фотография">
+                <p>Описание поста</p>
+            </div>
+            <div class="post">
+                <img src="/orig.jpg" alt="Фотография">
+                <p>Описание поста</p>
+            </div>
+        </div>
+
+        <button class="back-to-top">Наверх</button>
+    </div>
+
+    <script>
+        const uploadButton = document.querySelector('.upload-button');
+        const uploadForm = document.querySelector('.upload-form');
+        const fileInput = uploadForm.querySelector('input[type="file"]');
+        const uploadFormButton = uploadForm.querySelector('button');
+        const feed = document.querySelector('.feed');
+        const backToTopButton = document.querySelector('.back-to-top');
+
+        uploadButton.addEventListener('click', () => {
+            uploadForm.style.display = 'flex';
+        });
+
+        uploadFormButton.addEventListener('click', async () => {
+        const file = fileInput.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+
+        try {
+        const formData = new FormData();
+        formData.append('file', file); 
+
+        const response = await fetch('http://127.0.0.1:5000/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const message = `HTTP error! status: ${response.status}`;
+            if (response.status === 405) {
+            throw new Error("Сервер не разрешает POST-запросы на этот путь.");
+            }
+            let errorMessage = message;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage; 
+            } catch(jsonError){} 
+            throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+        console.log('Success:', data);
+        } catch (error) {
+        console.error('Error:', error);
+        }
+
+            const result = await response.json();
+            if (response.ok) {
+                const imgUrl = result.file_path;
+
+                const post = document.createElement('div');
+                post.classList.add('post');
+                post.innerHTML = `
+                    <img src="${imgUrl}" alt="Фотография">
+                    <p>Описание поста</p>
+                `;
+
+
+                feed.insertBefore(post, feed.firstChild);
+            } else {
+                alert(result.error);
+            }
+        }
+        uploadForm.style.display = 'none'; 
+    });
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 100) {
+                backToTopButton.style.display = 'block';
+            } else {
+                backToTopButton.style.display = 'none';
+            }
+        });
+
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>
